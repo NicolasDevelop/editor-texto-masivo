@@ -52,7 +52,6 @@
             <span class="group-title">Limpieza</span>
             <label><input id="trimItems" type="checkbox" checked> Quitar espacios al inicio/final</label>
             <label><input id="removeEmpty" type="checkbox" checked> Quitar vacios</label>
-            <label><input id="removeBackslashes" type="checkbox"> Quitar backslash \</label>
             <label><input id="dedupe" type="checkbox"> Quitar duplicados</label>
             <label><input id="escapeQuotes" type="checkbox" checked> Escapar comillas SQL</label>
           </div>
@@ -74,16 +73,6 @@
             <label><input type="radio" name="caseMode" value="keep" checked> Mantener</label>
             <label><input type="radio" name="caseMode" value="upper"> MAYUSCULAS</label>
             <label><input type="radio" name="caseMode" value="lower"> minusculas</label>
-          </div>
-
-          <div class="option-group ranking-zone">
-            <span class="group-title">Salida</span>
-            <label><input type="radio" name="outputMode" value="transform" checked> Transformar texto</label>
-            <label><input type="radio" name="outputMode" value="ranking"> Ranking de repetidos</label>
-            <label class="inline-field compact-field">
-              <span>Top</span>
-              <input id="rankingTop" type="number" min="1" max="100000" step="1" value="10">
-            </label>
           </div>
 
           <label class="inline-field">
@@ -115,8 +104,64 @@
         <button type="button" data-action="sample">Ejemplo SQL</button>
         <button type="button" data-action="sample-remove-lines">Ejemplo borrar filas</button>
         <button type="button" data-action="sample-remove-text">Ejemplo quitar texto</button>
-        <button type="button" data-action="sample-backslashes">Ejemplo JSON log</button>
-        <button type="button" data-action="sample-ranking">Ejemplo ranking</button>
+      </section>
+
+      <section class="module-grid" aria-label="Modulos independientes">
+        <article class="tool-module">
+          <div class="module-head">
+            <div>
+              <h2>Quitar backslash</h2>
+              <p>Limpia logs o JSON escapado para copiarlo como texto normal.</p>
+            </div>
+            <button id="backslashSampleBtn" class="ghost" type="button">Ejemplo</button>
+          </div>
+          <div class="module-body">
+            <label for="backslashInput">Entrada</label>
+            <textarea id="backslashInput" class="module-textarea" spellcheck="false" placeholder="{\&quot;id\&quot;:123,\&quot;estado\&quot;:\&quot;OK\&quot;}"></textarea>
+            <label for="backslashOutput">Resultado</label>
+            <textarea id="backslashOutput" class="module-textarea" spellcheck="false" readonly></textarea>
+          </div>
+          <div class="module-actions">
+            <span id="backslashCounter" class="counter">0 backslash removidos</span>
+            <button id="copyBackslashBtn" class="primary" type="button">Copiar resultado</button>
+          </div>
+        </article>
+
+        <article class="tool-module">
+          <div class="module-head">
+            <div>
+              <h2>Ranking de repetidos</h2>
+              <p>Cuenta textos iguales y muestra los mas repetidos.</p>
+            </div>
+            <button id="rankingSampleBtn" class="ghost" type="button">Ejemplo</button>
+          </div>
+          <div class="module-controls">
+            <label>
+              <span>Separar por</span>
+              <select id="rankingSplitBy">
+                <option value="lines">Filas</option>
+                <option value="commas">Comas</option>
+                <option value="spaces">Espacios</option>
+              </select>
+            </label>
+            <label>
+              <span>Top</span>
+              <input id="rankingTop" type="number" min="1" max="100000" step="1" value="10">
+            </label>
+            <label class="check-control"><input id="rankingTrim" type="checkbox" checked> Quitar espacios</label>
+            <label class="check-control"><input id="rankingIgnoreCase" type="checkbox"> Ignorar mayusculas</label>
+          </div>
+          <div class="module-body">
+            <label for="rankingInput">Entrada</label>
+            <textarea id="rankingInput" class="module-textarea" spellcheck="false" placeholder="ERROR_TIMEOUT&#10;OK&#10;ERROR_TIMEOUT"></textarea>
+            <label for="rankingOutput">Ranking</label>
+            <textarea id="rankingOutput" class="module-textarea" spellcheck="false" readonly></textarea>
+          </div>
+          <div class="module-actions">
+            <span id="rankingCounter" class="counter">0 textos unicos</span>
+            <button id="copyRankingBtn" class="primary" type="button">Copiar ranking</button>
+          </div>
+        </article>
       </section>
     </main>
 

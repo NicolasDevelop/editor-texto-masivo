@@ -13,8 +13,8 @@ Abre `index.html` en el navegador.
 - Crear listas tipo `IN ('a','b','c')`.
 - Quitar espacios al inicio y final.
 - Quitar lineas vacias.
-- Quitar backslash de logs o JSON escapado.
 - Quitar duplicados.
 - Convertir a mayusculas o minusculas.
-- Crear ranking Top X de textos repetidos.
 - Copiar el resultado al portapapeles.
+- Modulo independiente para quitar backslash de logs o JSON escapado.
+- Modulo independiente para crear ranking Top X de textos repetidos con formato `texto | cantidad`.

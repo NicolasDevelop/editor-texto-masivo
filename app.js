@@ -7,14 +7,11 @@ const presets = {
     suffix: ")",
     trimItems: true,
     removeEmpty: true,
-    removeBackslashes: false,
     dedupe: false,
     escapeQuotes: true,
     removePatterns: "",
     removeMode: "none",
     caseSensitiveRemove: false,
-    outputMode: "transform",
-    rankingTop: 10,
     caseMode: "keep",
   },
   "sql-double": {
@@ -25,14 +22,11 @@ const presets = {
     suffix: ")",
     trimItems: true,
     removeEmpty: true,
-    removeBackslashes: false,
     dedupe: false,
     escapeQuotes: true,
     removePatterns: "",
     removeMode: "none",
     caseSensitiveRemove: false,
-    outputMode: "transform",
-    rankingTop: 10,
     caseMode: "keep",
   },
   "plain-comma": {
@@ -43,14 +37,11 @@ const presets = {
     suffix: "",
     trimItems: true,
     removeEmpty: true,
-    removeBackslashes: false,
     dedupe: false,
     escapeQuotes: false,
     removePatterns: "",
     removeMode: "none",
     caseSensitiveRemove: false,
-    outputMode: "transform",
-    rankingTop: 10,
     caseMode: "keep",
   },
   "one-line": {
@@ -61,14 +52,11 @@ const presets = {
     suffix: "",
     trimItems: true,
     removeEmpty: true,
-    removeBackslashes: false,
     dedupe: false,
     escapeQuotes: false,
     removePatterns: "",
     removeMode: "none",
     caseSensitiveRemove: false,
-    outputMode: "transform",
-    rankingTop: 10,
     caseMode: "keep",
   },
   "clean-lines": {
@@ -79,14 +67,11 @@ const presets = {
     suffix: "",
     trimItems: true,
     removeEmpty: true,
-    removeBackslashes: false,
     dedupe: true,
     escapeQuotes: false,
     removePatterns: "",
     removeMode: "none",
     caseSensitiveRemove: false,
-    outputMode: "transform",
-    rankingTop: 10,
     caseMode: "keep",
   },
 };
@@ -101,12 +86,24 @@ const nodes = {
   suffix: document.querySelector("#suffix"),
   trimItems: document.querySelector("#trimItems"),
   removeEmpty: document.querySelector("#removeEmpty"),
-  removeBackslashes: document.querySelector("#removeBackslashes"),
   dedupe: document.querySelector("#dedupe"),
   escapeQuotes: document.querySelector("#escapeQuotes"),
   removePatterns: document.querySelector("#removePatterns"),
   caseSensitiveRemove: document.querySelector("#caseSensitiveRemove"),
+  backslashInput: document.querySelector("#backslashInput"),
+  backslashOutput: document.querySelector("#backslashOutput"),
+  backslashCounter: document.querySelector("#backslashCounter"),
+  backslashSampleBtn: document.querySelector("#backslashSampleBtn"),
+  copyBackslashBtn: document.querySelector("#copyBackslashBtn"),
+  rankingInput: document.querySelector("#rankingInput"),
+  rankingOutput: document.querySelector("#rankingOutput"),
+  rankingSplitBy: document.querySelector("#rankingSplitBy"),
   rankingTop: document.querySelector("#rankingTop"),
+  rankingTrim: document.querySelector("#rankingTrim"),
+  rankingIgnoreCase: document.querySelector("#rankingIgnoreCase"),
+  rankingCounter: document.querySelector("#rankingCounter"),
+  rankingSampleBtn: document.querySelector("#rankingSampleBtn"),
+  copyRankingBtn: document.querySelector("#copyRankingBtn"),
 };
 
 function selected(name) {
@@ -124,17 +121,14 @@ function applyPreset(name) {
   setRadio("joinWith", preset.joinWith);
   setRadio("caseMode", preset.caseMode);
   setRadio("removeMode", preset.removeMode);
-  setRadio("outputMode", preset.outputMode);
   nodes.prefix.value = preset.prefix;
   nodes.suffix.value = preset.suffix;
   nodes.trimItems.checked = preset.trimItems;
   nodes.removeEmpty.checked = preset.removeEmpty;
-  nodes.removeBackslashes.checked = preset.removeBackslashes;
   nodes.dedupe.checked = preset.dedupe;
   nodes.escapeQuotes.checked = preset.escapeQuotes;
   nodes.removePatterns.value = preset.removePatterns;
   nodes.caseSensitiveRemove.checked = preset.caseSensitiveRemove;
-  nodes.rankingTop.value = preset.rankingTop;
 
   document.querySelectorAll(".preset").forEach((button) => {
     button.classList.toggle("active", button.dataset.preset === name);
@@ -220,10 +214,6 @@ function cleanValues() {
     values = values.filter(Boolean);
   }
 
-  if (nodes.removeBackslashes.checked) {
-    values = values.map((value) => value.replaceAll("\\", ""));
-  }
-
   const patterns = removePatterns();
   const removeMode = selected("removeMode");
 
@@ -248,31 +238,9 @@ function cleanValues() {
   return values;
 }
 
-function rankingOutput(values) {
-  const top = Math.max(1, Number.parseInt(nodes.rankingTop.value, 10) || 10);
-  const counts = new Map();
-
-  values.forEach((value) => {
-    counts.set(value, (counts.get(value) || 0) + 1);
-  });
-
-  const rows = [...counts.entries()]
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-    .slice(0, top)
-    .map(([value, count], index) => `${index + 1}. ${value} | ${count}`);
-
-  nodes.output.value = rows.join("\n");
-  nodes.counter.textContent = `${counts.size} ${counts.size === 1 ? "texto unico" : "textos unicos"}`;
-}
-
 function transform() {
   const quoteMode = selected("quote");
   let values = cleanValues();
-
-  if (selected("outputMode") === "ranking") {
-    rankingOutput(values);
-    return;
-  }
 
   if (nodes.dedupe.checked) {
     values = uniqueValues(values);
@@ -296,6 +264,57 @@ async function copyOutput() {
 async function pasteInput() {
   nodes.input.value = await navigator.clipboard.readText();
   transform();
+}
+
+async function copyTextFrom(node, button) {
+  await navigator.clipboard.writeText(node.value);
+  const original = button.textContent;
+  button.textContent = "Copiado";
+  button.classList.add("copied");
+  window.setTimeout(() => {
+    button.textContent = original;
+    button.classList.remove("copied");
+  }, 1000);
+}
+
+function transformBackslashes() {
+  const input = nodes.backslashInput.value;
+  const removed = (input.match(/\\/g) || []).length;
+  nodes.backslashOutput.value = input.replaceAll("\\", "");
+  nodes.backslashCounter.textContent = `${removed} ${removed === 1 ? "backslash removido" : "backslash removidos"}`;
+}
+
+function rankingValues() {
+  let values = splitInput(nodes.rankingInput.value, nodes.rankingSplitBy.value);
+
+  if (nodes.rankingTrim.checked) {
+    values = values.map((value) => value.trim());
+  }
+
+  values = values.filter(Boolean);
+
+  if (nodes.rankingIgnoreCase.checked) {
+    values = values.map((value) => value.toLowerCase());
+  }
+
+  return values;
+}
+
+function transformRanking() {
+  const top = Math.max(1, Number.parseInt(nodes.rankingTop.value, 10) || 10);
+  const counts = new Map();
+
+  rankingValues().forEach((value) => {
+    counts.set(value, (counts.get(value) || 0) + 1);
+  });
+
+  const rows = [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, top)
+    .map(([value, count]) => `${value} | ${count}`);
+
+  nodes.rankingOutput.value = rows.join("\n");
+  nodes.rankingCounter.textContent = `${counts.size} ${counts.size === 1 ? "texto unico" : "textos unicos"}`;
 }
 
 function runQuickAction(action) {
@@ -331,20 +350,6 @@ function runQuickAction(action) {
     transform();
   }
 
-  if (action === "sample-backslashes") {
-    nodes.input.value = '{\\"id\\":123,\\"estado\\":\\"OK\\"}\n{\\"id\\":124,\\"estado\\":\\"ERROR\\"}';
-    applyPreset("clean-lines");
-    nodes.removeBackslashes.checked = true;
-    transform();
-  }
-
-  if (action === "sample-ranking") {
-    nodes.input.value = "ERROR_TIMEOUT\nOK\nERROR_TIMEOUT\nERROR_AUTH\nOK\nOK\nERROR_AUTH";
-    applyPreset("clean-lines");
-    setRadio("outputMode", "ranking");
-    nodes.rankingTop.value = "3";
-    transform();
-  }
 }
 
 document.querySelectorAll("input, textarea").forEach((element) => {
@@ -362,6 +367,25 @@ document.querySelectorAll("[data-action]").forEach((button) => {
 
 nodes.copyBtn.addEventListener("click", copyOutput);
 nodes.pasteBtn.addEventListener("click", pasteInput);
+nodes.backslashInput.addEventListener("input", transformBackslashes);
+nodes.backslashSampleBtn.addEventListener("click", () => {
+  nodes.backslashInput.value = '{\\"id\\":123,\\"estado\\":\\"OK\\"}\n{\\"id\\":124,\\"estado\\":\\"ERROR\\"}';
+  transformBackslashes();
+});
+nodes.copyBackslashBtn.addEventListener("click", () => copyTextFrom(nodes.backslashOutput, nodes.copyBackslashBtn));
+nodes.rankingInput.addEventListener("input", transformRanking);
+nodes.rankingSplitBy.addEventListener("change", transformRanking);
+nodes.rankingTop.addEventListener("input", transformRanking);
+nodes.rankingTrim.addEventListener("change", transformRanking);
+nodes.rankingIgnoreCase.addEventListener("change", transformRanking);
+nodes.rankingSampleBtn.addEventListener("click", () => {
+  nodes.rankingInput.value = "ERROR_TIMEOUT\nOK\nERROR_TIMEOUT\nERROR_AUTH\nOK\nOK\nERROR_AUTH";
+  nodes.rankingTop.value = "3";
+  transformRanking();
+});
+nodes.copyRankingBtn.addEventListener("click", () => copyTextFrom(nodes.rankingOutput, nodes.copyRankingBtn));
 
 nodes.input.value = "abc\nxyz\n  prueba  ";
 applyPreset("sql-single");
+transformBackslashes();
+transformRanking();
