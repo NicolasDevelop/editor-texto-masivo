@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Editor de texto masivo</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="toolbar" aria-label="Presets">
+        <button class="preset active" type="button" data-preset="sql-single">SQL IN: 'a','b'</button>
+        <button class="preset" type="button" data-preset="sql-double">SQL IN: "a","b"</button>
+        <button class="preset" type="button" data-preset="plain-comma">a,b,c</button>
+        <button class="preset" type="button" data-preset="one-line">Una linea</button>
+        <button class="preset" type="button" data-preset="clean-lines">Limpiar filas</button>
+      </section>
+
+      <section class="workspace">
+        <div class="panel">
+          <div class="panel-head">
+            <label for="inputText">Entrada</label>
+            <button id="pasteBtn" class="ghost" type="button">Pegar</button>
+          </div>
+          <textarea id="inputText" spellcheck="false" placeholder="Pega aqui una columna, una lista o un texto largo..."></textarea>
+        </div>
+
+        <aside class="options" aria-label="Opciones">
+          <div class="option-group">
+            <span class="group-title">Separar entrada por</span>
+            <label><input type="radio" name="splitBy" value="lines" checked> Filas</label>
+            <label><input type="radio" name="splitBy" value="commas"> Comas</label>
+            <label><input type="radio" name="splitBy" value="spaces"> Espacios</label>
+          </div>
+
+          <div class="option-group">
+            <span class="group-title">Envolver cada valor</span>
+            <label><input type="radio" name="quote" value="single" checked> Comilla simple</label>
+            <label><input type="radio" name="quote" value="double"> Comilla doble</label>
+            <label><input type="radio" name="quote" value="none"> Sin comillas</label>
+          </div>
+
+          <div class="option-group">
+            <span class="group-title">Unir salida con</span>
+            <label><input type="radio" name="joinWith" value="comma" checked> Coma</label>
+            <label><input type="radio" name="joinWith" value="comma-space"> Coma + espacio</label>
+            <label><input type="radio" name="joinWith" value="line"> Salto de linea</label>
+            <label><input type="radio" name="joinWith" value="space"> Espacio</label>
+          </div>
+
+          <div class="option-group">
+            <span class="group-title">Limpieza</span>
+            <label><input id="trimItems" type="checkbox" checked> Quitar espacios al inicio/final</label>
+            <label><input id="removeEmpty" type="checkbox" checked> Quitar vacios</label>
+            <label><input id="removeBackslashes" type="checkbox"> Quitar backslash \</label>
+            <label><input id="dedupe" type="checkbox"> Quitar duplicados</label>
+            <label><input id="escapeQuotes" type="checkbox" checked> Escapar comillas SQL</label>
+          </div>
+
+          <div class="option-group danger-zone">
+            <span class="group-title">Borrado masivo</span>
+            <label class="inline-field">
+              <span>Buscar texto</span>
+              <textarea id="removePatterns" class="mini-textarea" spellcheck="false" placeholder="activo&#10;test&#10;demo"></textarea>
+            </label>
+            <label><input type="radio" name="removeMode" value="none" checked> No borrar</label>
+            <label><input type="radio" name="removeMode" value="line"> Borrar valor/fila si contiene el texto</label>
+            <label><input type="radio" name="removeMode" value="text"> Quitar solo el texto encontrado</label>
+            <label><input id="caseSensitiveRemove" type="checkbox"> Distinguir mayusculas/minusculas</label>
+          </div>
+
+          <div class="option-group">
+            <span class="group-title">Capitalizacion</span>
+            <label><input type="radio" name="caseMode" value="keep" checked> Mantener</label>
+            <label><input type="radio" name="caseMode" value="upper"> MAYUSCULAS</label>
+            <label><input type="radio" name="caseMode" value="lower"> minusculas</label>
+          </div>
+
+          <div class="option-group ranking-zone">
+            <span class="group-title">Salida</span>
+            <label><input type="radio" name="outputMode" value="transform" checked> Transformar texto</label>
+            <label><input type="radio" name="outputMode" value="ranking"> Ranking de repetidos</label>
+            <label class="inline-field compact-field">
+              <span>Top</span>
+              <input id="rankingTop" type="number" min="1" max="100000" step="1" value="10">
+            </label>
+          </div>
+
+          <label class="inline-field">
+            <span>Prefijo</span>
+            <input id="prefix" type="text" placeholder="IN (">
+          </label>
+
+          <label class="inline-field">
+            <span>Sufijo</span>
+            <input id="suffix" type="text" placeholder=")">
+          </label>
+        </aside>
+
+        <div class="panel">
+          <div class="panel-head">
+            <label for="outputText">Resultado</label>
+            <div class="head-actions">
+              <span id="counter" class="counter">0 valores</span>
+              <button id="copyBtn" class="primary" type="button">Copiar</button>
+            </div>
+          </div>
+          <textarea id="outputText" spellcheck="false" readonly></textarea>
+        </div>
+      </section>
+
+      <section class="quick-tools" aria-label="Herramientas rapidas">
+        <button type="button" data-action="swap">Intercambiar entrada/salida</button>
+        <button type="button" data-action="clear">Limpiar todo</button>
+        <button type="button" data-action="sample">Ejemplo SQL</button>
+        <button type="button" data-action="sample-remove-lines">Ejemplo borrar filas</button>
+        <button type="button" data-action="sample-remove-text">Ejemplo quitar texto</button>
+        <button type="button" data-action="sample-backslashes">Ejemplo JSON log</button>
+        <button type="button" data-action="sample-ranking">Ejemplo ranking</button>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
