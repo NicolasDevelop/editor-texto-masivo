@@ -16,5 +16,6 @@ Abre `index.html` en el navegador.
 - Quitar duplicados.
 - Convertir a mayusculas o minusculas.
 - Copiar el resultado al portapapeles.
+- Modulo independiente para borrado masivo de filas o fragmentos.
 - Modulo independiente para quitar backslash de logs o JSON escapado.
 - Modulo independiente para crear ranking Top X de textos repetidos con formato `texto | cantidad`.

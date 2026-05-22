@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Editor de texto masivo</title>
-    <link rel="stylesheet" href="styles.css?v=compact-2">
+    <link rel="stylesheet" href="styles.css?v=modules-1">
   </head>
   <body>
     <main class="app-shell">
@@ -56,18 +56,6 @@
             <label><input id="escapeQuotes" type="checkbox" checked> Escapar comillas SQL</label>
           </div>
 
-          <div class="option-group danger-zone">
-            <span class="group-title">Borrado masivo</span>
-            <label class="inline-field">
-              <span>Buscar texto</span>
-              <textarea id="removePatterns" class="mini-textarea" spellcheck="false" placeholder="activo&#10;test&#10;demo"></textarea>
-            </label>
-            <label><input type="radio" name="removeMode" value="none" checked> No borrar</label>
-            <label><input type="radio" name="removeMode" value="line"> Borrar valor/fila si contiene el texto</label>
-            <label><input type="radio" name="removeMode" value="text"> Quitar solo el texto encontrado</label>
-            <label><input id="caseSensitiveRemove" type="checkbox"> Distinguir mayusculas/minusculas</label>
-          </div>
-
           <div class="option-group">
             <span class="group-title">Capitalizacion</span>
             <label><input type="radio" name="caseMode" value="keep" checked> Mantener</label>
@@ -102,11 +90,44 @@
         <button type="button" data-action="swap">Intercambiar entrada/salida</button>
         <button type="button" data-action="clear">Limpiar todo</button>
         <button type="button" data-action="sample">Ejemplo SQL</button>
-        <button type="button" data-action="sample-remove-lines">Ejemplo borrar filas</button>
-        <button type="button" data-action="sample-remove-text">Ejemplo quitar texto</button>
       </section>
 
       <section class="module-grid" aria-label="Modulos independientes">
+        <article class="tool-module delete-module">
+          <div class="module-head">
+            <div>
+              <h2>Borrado masivo</h2>
+              <p>Borra filas que contengan textos o quita solo el fragmento encontrado.</p>
+            </div>
+            <div class="module-head-actions">
+              <button id="deleteLinesSampleBtn" class="ghost" type="button">Ejemplo filas</button>
+              <button id="deleteTextSampleBtn" class="ghost" type="button">Ejemplo texto</button>
+            </div>
+          </div>
+          <div class="module-controls delete-controls">
+            <label>
+              <span>Modo</span>
+              <select id="deleteMode">
+                <option value="line">Borrar valor/fila si contiene</option>
+                <option value="text">Quitar solo el texto encontrado</option>
+              </select>
+            </label>
+            <label class="check-control"><input id="deleteCaseSensitive" type="checkbox"> Distinguir mayusculas</label>
+          </div>
+          <div class="module-body delete-body">
+            <label for="deleteInput">Entrada</label>
+            <label for="deletePatterns">Buscar texto</label>
+            <label for="deleteOutput">Resultado</label>
+            <textarea id="deleteInput" class="module-textarea" spellcheck="false" placeholder="cliente_activo&#10;cliente_test&#10;backup_cliente"></textarea>
+            <textarea id="deletePatterns" class="module-textarea" spellcheck="false" placeholder="test&#10;backup"></textarea>
+            <textarea id="deleteOutput" class="module-textarea" spellcheck="false" readonly></textarea>
+          </div>
+          <div class="module-actions">
+            <span id="deleteCounter" class="counter">0 cambios</span>
+            <button id="copyDeleteBtn" class="primary" type="button">Copiar resultado</button>
+          </div>
+        </article>
+
         <article class="tool-module">
           <div class="module-head">
             <div>
@@ -165,6 +186,6 @@
       </section>
     </main>
 
-    <script src="app.js?v=compact-2"></script>
+    <script src="app.js?v=modules-1"></script>
   </body>
 </html>

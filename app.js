@@ -9,9 +9,6 @@ const presets = {
     removeEmpty: true,
     dedupe: false,
     escapeQuotes: true,
-    removePatterns: "",
-    removeMode: "none",
-    caseSensitiveRemove: false,
     caseMode: "keep",
   },
   "sql-double": {
@@ -24,9 +21,6 @@ const presets = {
     removeEmpty: true,
     dedupe: false,
     escapeQuotes: true,
-    removePatterns: "",
-    removeMode: "none",
-    caseSensitiveRemove: false,
     caseMode: "keep",
   },
   "plain-comma": {
@@ -39,9 +33,6 @@ const presets = {
     removeEmpty: true,
     dedupe: false,
     escapeQuotes: false,
-    removePatterns: "",
-    removeMode: "none",
-    caseSensitiveRemove: false,
     caseMode: "keep",
   },
   "one-line": {
@@ -54,9 +45,6 @@ const presets = {
     removeEmpty: true,
     dedupe: false,
     escapeQuotes: false,
-    removePatterns: "",
-    removeMode: "none",
-    caseSensitiveRemove: false,
     caseMode: "keep",
   },
   "clean-lines": {
@@ -69,9 +57,6 @@ const presets = {
     removeEmpty: true,
     dedupe: true,
     escapeQuotes: false,
-    removePatterns: "",
-    removeMode: "none",
-    caseSensitiveRemove: false,
     caseMode: "keep",
   },
 };
@@ -88,8 +73,15 @@ const nodes = {
   removeEmpty: document.querySelector("#removeEmpty"),
   dedupe: document.querySelector("#dedupe"),
   escapeQuotes: document.querySelector("#escapeQuotes"),
-  removePatterns: document.querySelector("#removePatterns"),
-  caseSensitiveRemove: document.querySelector("#caseSensitiveRemove"),
+  deleteInput: document.querySelector("#deleteInput"),
+  deletePatterns: document.querySelector("#deletePatterns"),
+  deleteOutput: document.querySelector("#deleteOutput"),
+  deleteMode: document.querySelector("#deleteMode"),
+  deleteCaseSensitive: document.querySelector("#deleteCaseSensitive"),
+  deleteCounter: document.querySelector("#deleteCounter"),
+  deleteLinesSampleBtn: document.querySelector("#deleteLinesSampleBtn"),
+  deleteTextSampleBtn: document.querySelector("#deleteTextSampleBtn"),
+  copyDeleteBtn: document.querySelector("#copyDeleteBtn"),
   backslashInput: document.querySelector("#backslashInput"),
   backslashOutput: document.querySelector("#backslashOutput"),
   backslashCounter: document.querySelector("#backslashCounter"),
@@ -120,15 +112,12 @@ function applyPreset(name) {
   setRadio("quote", preset.quote);
   setRadio("joinWith", preset.joinWith);
   setRadio("caseMode", preset.caseMode);
-  setRadio("removeMode", preset.removeMode);
   nodes.prefix.value = preset.prefix;
   nodes.suffix.value = preset.suffix;
   nodes.trimItems.checked = preset.trimItems;
   nodes.removeEmpty.checked = preset.removeEmpty;
   nodes.dedupe.checked = preset.dedupe;
   nodes.escapeQuotes.checked = preset.escapeQuotes;
-  nodes.removePatterns.value = preset.removePatterns;
-  nodes.caseSensitiveRemove.checked = preset.caseSensitiveRemove;
 
   document.querySelectorAll(".preset").forEach((button) => {
     button.classList.toggle("active", button.dataset.preset === name);
@@ -177,24 +166,24 @@ function uniqueValues(values) {
   });
 }
 
-function removePatterns() {
-  const patterns = nodes.removePatterns.value
+function patternList(text, caseSensitive) {
+  const patterns = text
     .split(/\r?\n/)
     .map((pattern) => pattern.trim())
     .filter(Boolean);
 
-  if (nodes.caseSensitiveRemove.checked) return patterns;
+  if (caseSensitive) return patterns;
   return patterns.map((pattern) => pattern.toLowerCase());
 }
 
-function containsPattern(value, patterns) {
-  const haystack = nodes.caseSensitiveRemove.checked ? value : value.toLowerCase();
+function containsPattern(value, patterns, caseSensitive) {
+  const haystack = caseSensitive ? value : value.toLowerCase();
   return patterns.some((pattern) => haystack.includes(pattern));
 }
 
-function removeTextPatterns(value, patterns) {
+function removeTextPatterns(value, patterns, caseSensitive) {
   return patterns.reduce((current, pattern) => {
-    const flags = nodes.caseSensitiveRemove.checked ? "g" : "gi";
+    const flags = caseSensitive ? "g" : "gi";
     return current.replaceAll(new RegExp(escapeRegExp(pattern), flags), "");
   }, value);
 }
@@ -212,17 +201,6 @@ function cleanValues() {
 
   if (nodes.removeEmpty.checked) {
     values = values.filter(Boolean);
-  }
-
-  const patterns = removePatterns();
-  const removeMode = selected("removeMode");
-
-  if (patterns.length && removeMode === "line") {
-    values = values.filter((value) => !containsPattern(value, patterns));
-  }
-
-  if (patterns.length && removeMode === "text") {
-    values = values.map((value) => removeTextPatterns(value, patterns));
   }
 
   values = values.map((value) => applyCase(value, selected("caseMode")));
@@ -284,6 +262,36 @@ function transformBackslashes() {
   nodes.backslashCounter.textContent = `${removed} ${removed === 1 ? "backslash removido" : "backslash removidos"}`;
 }
 
+function transformDelete() {
+  const lines = nodes.deleteInput.value.split(/\r?\n/);
+  const caseSensitive = nodes.deleteCaseSensitive.checked;
+  const patterns = patternList(nodes.deletePatterns.value, caseSensitive);
+
+  if (!patterns.length) {
+    nodes.deleteOutput.value = nodes.deleteInput.value;
+    nodes.deleteCounter.textContent = "0 cambios";
+    return;
+  }
+
+  if (nodes.deleteMode.value === "line") {
+    const kept = lines.filter((line) => !containsPattern(line, patterns, caseSensitive));
+    const removed = lines.length - kept.length;
+    nodes.deleteOutput.value = kept.join("\n");
+    nodes.deleteCounter.textContent = `${removed} ${removed === 1 ? "fila borrada" : "filas borradas"}`;
+    return;
+  }
+
+  let changes = 0;
+  const output = lines.map((line) => {
+    const next = removeTextPatterns(line, patterns, caseSensitive);
+    if (next !== line) changes += 1;
+    return next;
+  });
+
+  nodes.deleteOutput.value = output.join("\n");
+  nodes.deleteCounter.textContent = `${changes} ${changes === 1 ? "fila modificada" : "filas modificadas"}`;
+}
+
 function rankingValues() {
   let values = splitInput(nodes.rankingInput.value, nodes.rankingSplitBy.value);
 
@@ -333,23 +341,6 @@ function runQuickAction(action) {
     nodes.input.value = "Santiago\nValparaiso\nConcepcion\nSantiago\n  La Serena  ";
     applyPreset("sql-single");
   }
-
-  if (action === "sample-remove-lines") {
-    nodes.input.value = "cliente_activo\ncliente_test\ncliente_demo\ncliente_final\nbackup_cliente";
-    applyPreset("clean-lines");
-    nodes.removePatterns.value = "test\ndemo\nbackup";
-    setRadio("removeMode", "line");
-    transform();
-  }
-
-  if (action === "sample-remove-text") {
-    nodes.input.value = "ID: 1001\nID: 1002\nID: 1003";
-    applyPreset("plain-comma");
-    nodes.removePatterns.value = "ID:";
-    setRadio("removeMode", "text");
-    transform();
-  }
-
 }
 
 document.querySelectorAll("input, textarea").forEach((element) => {
@@ -367,6 +358,23 @@ document.querySelectorAll("[data-action]").forEach((button) => {
 
 nodes.copyBtn.addEventListener("click", copyOutput);
 nodes.pasteBtn.addEventListener("click", pasteInput);
+nodes.deleteInput.addEventListener("input", transformDelete);
+nodes.deletePatterns.addEventListener("input", transformDelete);
+nodes.deleteMode.addEventListener("change", transformDelete);
+nodes.deleteCaseSensitive.addEventListener("change", transformDelete);
+nodes.deleteLinesSampleBtn.addEventListener("click", () => {
+  nodes.deleteInput.value = "cliente_activo\ncliente_test\ncliente_demo\ncliente_final\nbackup_cliente";
+  nodes.deletePatterns.value = "test\ndemo\nbackup";
+  nodes.deleteMode.value = "line";
+  transformDelete();
+});
+nodes.deleteTextSampleBtn.addEventListener("click", () => {
+  nodes.deleteInput.value = "ID: 1001\nID: 1002\nID: 1003";
+  nodes.deletePatterns.value = "ID:";
+  nodes.deleteMode.value = "text";
+  transformDelete();
+});
+nodes.copyDeleteBtn.addEventListener("click", () => copyTextFrom(nodes.deleteOutput, nodes.copyDeleteBtn));
 nodes.backslashInput.addEventListener("input", transformBackslashes);
 nodes.backslashSampleBtn.addEventListener("click", () => {
   nodes.backslashInput.value = '{\\"id\\":123,\\"estado\\":\\"OK\\"}\n{\\"id\\":124,\\"estado\\":\\"ERROR\\"}';
@@ -387,5 +395,6 @@ nodes.copyRankingBtn.addEventListener("click", () => copyTextFrom(nodes.rankingO
 
 nodes.input.value = "abc\nxyz\n  prueba  ";
 applyPreset("sql-single");
+transformDelete();
 transformBackslashes();
 transformRanking();

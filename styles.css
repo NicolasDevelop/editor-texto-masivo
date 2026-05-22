@@ -221,6 +221,10 @@ input[type="checkbox"] {
   margin-top: 8px;
 }
 
+.delete-module {
+  grid-column: 1 / -1;
+}
+
 .tool-module {
   display: grid;
   gap: 10px;
@@ -239,6 +243,13 @@ input[type="checkbox"] {
   gap: 12px;
 }
 
+.module-head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 .module-head h2 {
   margin: 0 0 4px;
   font-size: 1rem;
@@ -254,6 +265,10 @@ input[type="checkbox"] {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px 10px;
+}
+
+.delete-body {
+  grid-template-columns: minmax(0, 1.2fr) minmax(180px, 0.7fr) minmax(0, 1.2fr);
 }
 
 .module-body label,
@@ -300,6 +315,10 @@ input[type="checkbox"] {
   color: var(--muted);
   font-size: 0.9rem;
   font-weight: 750;
+}
+
+.delete-controls {
+  justify-content: start;
 }
 
 @media (max-width: 1050px) {
