@@ -26,7 +26,7 @@ body {
 .app-shell {
   width: min(1500px, calc(100vw - 28px));
   margin: 0 auto;
-  padding: 20px 0;
+  padding: 12px 0;
 }
 
 .toolbar,
@@ -38,7 +38,7 @@ body {
 }
 
 button {
-  min-height: 38px;
+  min-height: 34px;
   border: 1px solid var(--line);
   border-radius: 7px;
   background: var(--panel);
@@ -74,14 +74,14 @@ button:hover {
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(280px, 1fr) 300px minmax(280px, 1fr);
-  gap: 12px;
+  grid-template-columns: minmax(260px, 1fr) 360px minmax(260px, 1fr);
+  gap: 10px;
   align-items: stretch;
 }
 
 .panel,
 .options {
-  min-height: 620px;
+  height: 410px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
@@ -95,12 +95,12 @@ button:hover {
 }
 
 .panel-head {
-  min-height: 58px;
+  min-height: 46px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 11px 14px;
+  padding: 8px 12px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -127,14 +127,14 @@ textarea {
   resize: none;
   border: 0;
   outline: 0;
-  padding: 16px;
+  padding: 12px;
   color: var(--ink);
   background: transparent;
   font: 15px/1.5 Consolas, "Cascadia Mono", "Courier New", monospace;
 }
 
 .mini-textarea {
-  min-height: 92px;
+  min-height: 62px;
   border: 1px solid var(--line);
   border-radius: 7px;
   padding: 10px;
@@ -142,15 +142,19 @@ textarea {
 }
 
 .options {
-  padding: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: 10px;
+  padding: 10px;
   overflow: auto;
 }
 
 .option-group {
   display: grid;
-  gap: 8px;
-  padding-bottom: 16px;
-  margin-bottom: 16px;
+  gap: 6px;
+  padding-bottom: 0;
+  margin-bottom: 0;
   border-bottom: 1px solid var(--line);
 }
 
@@ -159,7 +163,7 @@ textarea {
   align-items: center;
   gap: 8px;
   color: var(--muted);
-  font-size: 0.94rem;
+  font-size: 0.86rem;
 }
 
 input[type="radio"],
@@ -171,15 +175,15 @@ input[type="checkbox"] {
 
 .inline-field {
   display: grid;
-  gap: 6px;
-  margin-bottom: 12px;
+  gap: 5px;
+  margin-bottom: 0;
   color: var(--muted);
   font-size: 0.9rem;
   font-weight: 750;
 }
 
 .inline-field input {
-  min-height: 39px;
+  min-height: 34px;
   border: 1px solid var(--line);
   border-radius: 7px;
   padding: 0 10px;
@@ -190,7 +194,8 @@ input[type="checkbox"] {
   background: #fff7f2;
   border: 1px solid #f0d0bf;
   border-radius: 8px;
-  padding: 12px;
+  padding: 10px;
+  grid-row: span 2;
 }
 
 .ranking-zone {
@@ -205,7 +210,7 @@ input[type="checkbox"] {
 }
 
 .quick-tools {
-  margin-top: 12px;
+  margin-top: 10px;
   margin-bottom: 0;
 }
 
@@ -213,17 +218,17 @@ input[type="checkbox"] {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 .tool-module {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
   box-shadow: 0 14px 34px rgba(24, 33, 54, 0.08);
-  padding: 14px;
+  padding: 12px;
 }
 
 .module-head,
@@ -259,7 +264,7 @@ input[type="checkbox"] {
 }
 
 .module-textarea {
-  min-height: 170px;
+  min-height: 145px;
   border: 1px solid var(--line);
   border-radius: 7px;
   padding: 12px;
@@ -309,17 +314,17 @@ input[type="checkbox"] {
 
   .panel,
   .options {
-    min-height: auto;
+    height: auto;
   }
 
   .panel {
-    height: 360px;
+    height: 300px;
   }
 
   .options {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    gap: 10px;
   }
 
   .option-group,
@@ -339,7 +344,7 @@ input[type="checkbox"] {
   }
 
   .panel {
-    height: 320px;
+    height: 280px;
   }
 
   .panel-head {
