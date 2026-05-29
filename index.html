@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Editor de texto masivo</title>
-    <link rel="stylesheet" href="styles.css?v=modules-1">
+    <link rel="stylesheet" href="styles.css?v=ranking-dedupe-1">
   </head>
   <body>
     <main class="app-shell">
@@ -154,7 +154,10 @@
               <h2>Ranking de repetidos</h2>
               <p>Cuenta textos iguales y muestra los mas repetidos.</p>
             </div>
-            <button id="rankingSampleBtn" class="ghost" type="button">Ejemplo</button>
+            <div class="module-head-actions">
+              <button id="rankingSampleBtn" class="ghost" type="button">Ejemplo</button>
+              <button id="rankingDedupeBtn" class="ghost" type="button">Eliminar duplicados</button>
+            </div>
           </div>
           <div class="module-controls">
             <label>
@@ -186,6 +189,6 @@
       </section>
     </main>
 
-    <script src="app.js?v=modules-1"></script>
+    <script src="app.js?v=ranking-dedupe-1"></script>
   </body>
 </html>

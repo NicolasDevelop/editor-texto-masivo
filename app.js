@@ -95,6 +95,7 @@ const nodes = {
   rankingIgnoreCase: document.querySelector("#rankingIgnoreCase"),
   rankingCounter: document.querySelector("#rankingCounter"),
   rankingSampleBtn: document.querySelector("#rankingSampleBtn"),
+  rankingDedupeBtn: document.querySelector("#rankingDedupeBtn"),
   copyRankingBtn: document.querySelector("#copyRankingBtn"),
 };
 
@@ -308,6 +309,27 @@ function rankingValues() {
   return values;
 }
 
+function joinRankingValues(values) {
+  if (nodes.rankingSplitBy.value === "commas") return values.join(",");
+  if (nodes.rankingSplitBy.value === "spaces") return values.join(" ");
+  return values.join("\n");
+}
+
+function dedupeRankingInput() {
+  const seen = new Set();
+  const unique = [];
+
+  rankingValues().forEach((value) => {
+    const key = nodes.rankingIgnoreCase.checked ? value.toLowerCase() : value;
+    if (seen.has(key)) return;
+    seen.add(key);
+    unique.push(value);
+  });
+
+  nodes.rankingInput.value = joinRankingValues(unique);
+  transformRanking();
+}
+
 function transformRanking() {
   const top = Math.max(1, Number.parseInt(nodes.rankingTop.value, 10) || 10);
   const counts = new Map();
@@ -391,6 +413,7 @@ nodes.rankingSampleBtn.addEventListener("click", () => {
   nodes.rankingTop.value = "3";
   transformRanking();
 });
+nodes.rankingDedupeBtn.addEventListener("click", dedupeRankingInput);
 nodes.copyRankingBtn.addEventListener("click", () => copyTextFrom(nodes.rankingOutput, nodes.copyRankingBtn));
 
 nodes.input.value = "abc\nxyz\n  prueba  ";
