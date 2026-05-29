@@ -4,10 +4,18 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Editor de texto masivo</title>
-    <link rel="stylesheet" href="styles.css?v=ranking-dedupe-1">
+    <link rel="stylesheet" href="styles.css?v=theme-1">
   </head>
   <body>
     <main class="app-shell">
+      <header class="app-topbar">
+        <div>
+          <h1>Editor de texto masivo</h1>
+          <p>Transforma listas, limpia logs y cuenta repetidos.</p>
+        </div>
+        <button id="themeToggle" class="theme-toggle" type="button" aria-pressed="false">Modo oscuro</button>
+      </header>
+
       <section class="toolbar" aria-label="Presets">
         <button class="preset active" type="button" data-preset="sql-single">SQL IN: 'a','b'</button>
         <button class="preset" type="button" data-preset="sql-double">SQL IN: "a","b"</button>
@@ -189,6 +197,6 @@
       </section>
     </main>
 
-    <script src="app.js?v=ranking-dedupe-1"></script>
+    <script src="app.js?v=theme-1"></script>
   </body>
 </html>

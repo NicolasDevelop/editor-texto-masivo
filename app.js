@@ -62,6 +62,7 @@ const presets = {
 };
 
 const nodes = {
+  themeToggle: document.querySelector("#themeToggle"),
   input: document.querySelector("#inputText"),
   output: document.querySelector("#outputText"),
   counter: document.querySelector("#counter"),
@@ -98,6 +99,24 @@ const nodes = {
   rankingDedupeBtn: document.querySelector("#rankingDedupeBtn"),
   copyRankingBtn: document.querySelector("#copyRankingBtn"),
 };
+
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  nodes.themeToggle.textContent = theme === "dark" ? "Modo claro" : "Modo oscuro";
+  nodes.themeToggle.setAttribute("aria-pressed", String(theme === "dark"));
+  localStorage.setItem("text-tool-theme", theme);
+}
+
+function initTheme() {
+  const savedTheme = localStorage.getItem("text-tool-theme");
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  applyTheme(savedTheme || (prefersDark ? "dark" : "light"));
+}
+
+function toggleTheme() {
+  const current = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+  applyTheme(current === "dark" ? "light" : "dark");
+}
 
 function selected(name) {
   return document.querySelector(`input[name="${name}"]:checked`).value;
@@ -379,6 +398,7 @@ document.querySelectorAll("[data-action]").forEach((button) => {
 });
 
 nodes.copyBtn.addEventListener("click", copyOutput);
+nodes.themeToggle.addEventListener("click", toggleTheme);
 nodes.pasteBtn.addEventListener("click", pasteInput);
 nodes.deleteInput.addEventListener("input", transformDelete);
 nodes.deletePatterns.addEventListener("input", transformDelete);
@@ -417,6 +437,7 @@ nodes.rankingDedupeBtn.addEventListener("click", dedupeRankingInput);
 nodes.copyRankingBtn.addEventListener("click", () => copyTextFrom(nodes.rankingOutput, nodes.copyRankingBtn));
 
 nodes.input.value = "abc\nxyz\n  prueba  ";
+initTheme();
 applyPreset("sql-single");
 transformDelete();
 transformBackslashes();
