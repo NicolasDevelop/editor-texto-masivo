@@ -1,21 +1,27 @@
 # Editor de texto masivo
 
-Herramienta estatica para transformar listas de texto y preparar valores para consultas SQL.
+Herramienta web estatica para preparar listas SQL y editar bloques de texto. No necesita backend y puede publicarse directamente en GitHub Pages.
+
+## Uso principal
+
+1. Pega una columna de valores en `Entrada`.
+2. Elige comillas simples, dobles o valores numericos.
+3. Copia el resultado `IN (...)`.
+
+La configuracion menos frecuente esta plegada en `Opciones avanzadas`. Los modulos de borrado masivo, backslash y ranking estan en `Mas herramientas`.
+
+## Edicion multiple
+
+- `Alt` + arrastrar: crea una seleccion rectangular en varias filas.
+- `Ctrl+D` en Windows o `Cmd+D` en macOS: agrega la siguiente coincidencia a la seleccion.
+- `Alt+F3`: selecciona todas las coincidencias del texto seleccionado.
+- El campo `Buscar coincidencias` y el boton `Seleccionar todas` permiten editar todas las apariciones simultaneamente.
+- `Un cursor` conserva solo el cursor principal.
 
 ## Abrir
 
-Abre `index.html` en el navegador.
+Abre `index.html` en el navegador o sirve la carpeta con un servidor estatico.
 
-## Funciones
+## Dependencia incluida
 
-- Agregar comillas simples o dobles a cada valor.
-- Unir valores con coma, coma + espacio, salto de linea o espacio.
-- Crear listas tipo `IN ('a','b','c')`.
-- Quitar espacios al inicio y final.
-- Quitar lineas vacias.
-- Quitar duplicados.
-- Convertir a mayusculas o minusculas.
-- Copiar el resultado al portapapeles.
-- Modulo independiente para borrado masivo de filas o fragmentos.
-- Modulo independiente para quitar backslash de logs o JSON escapado.
-- Modulo independiente para crear ranking Top X de textos repetidos con formato `texto | cantidad`.
+El editor usa CodeMirror 5.65.16, distribuido bajo licencia MIT en `vendor/codemirror`.

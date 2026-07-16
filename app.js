@@ -23,39 +23,15 @@ const presets = {
     escapeQuotes: true,
     caseMode: "keep",
   },
-  "plain-comma": {
+  "sql-number": {
     splitBy: "lines",
     quote: "none",
     joinWith: "comma",
-    prefix: "",
-    suffix: "",
+    prefix: "IN (",
+    suffix: ")",
     trimItems: true,
     removeEmpty: true,
     dedupe: false,
-    escapeQuotes: false,
-    caseMode: "keep",
-  },
-  "one-line": {
-    splitBy: "lines",
-    quote: "none",
-    joinWith: "space",
-    prefix: "",
-    suffix: "",
-    trimItems: true,
-    removeEmpty: true,
-    dedupe: false,
-    escapeQuotes: false,
-    caseMode: "keep",
-  },
-  "clean-lines": {
-    splitBy: "lines",
-    quote: "none",
-    joinWith: "line",
-    prefix: "",
-    suffix: "",
-    trimItems: true,
-    removeEmpty: true,
-    dedupe: true,
     escapeQuotes: false,
     caseMode: "keep",
   },
@@ -68,6 +44,11 @@ const nodes = {
   counter: document.querySelector("#counter"),
   copyBtn: document.querySelector("#copyBtn"),
   pasteBtn: document.querySelector("#pasteBtn"),
+  findText: document.querySelector("#findText"),
+  findCaseSensitive: document.querySelector("#findCaseSensitive"),
+  selectAllMatchesBtn: document.querySelector("#selectAllMatchesBtn"),
+  clearCursorsBtn: document.querySelector("#clearCursorsBtn"),
+  matchCounter: document.querySelector("#matchCounter"),
   prefix: document.querySelector("#prefix"),
   suffix: document.querySelector("#suffix"),
   trimItems: document.querySelector("#trimItems"),
@@ -100,11 +81,14 @@ const nodes = {
   copyRankingBtn: document.querySelector("#copyRankingBtn"),
 };
 
+let mainEditor = null;
+
 function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
   nodes.themeToggle.textContent = theme === "dark" ? "Modo claro" : "Modo oscuro";
   nodes.themeToggle.setAttribute("aria-pressed", String(theme === "dark"));
   localStorage.setItem("text-tool-theme", theme);
+  window.setTimeout(() => mainEditor?.refresh(), 0);
 }
 
 function initTheme() {
@@ -118,6 +102,41 @@ function toggleTheme() {
   applyTheme(current === "dark" ? "light" : "dark");
 }
 
+function initMainEditor() {
+  mainEditor = CodeMirror.fromTextArea(nodes.input, {
+    lineNumbers: true,
+    lineWrapping: false,
+    keyMap: "sublime",
+    viewportMargin: 20,
+    showCursorWhenSelecting: true,
+    screenReaderLabel: "Entrada de texto",
+    configureMouse: (_editor, _repeat, event) => {
+      if (!event.altKey) return null;
+      return { unit: "rectangle", extend: false, addNew: false };
+    },
+  });
+
+  mainEditor.on("change", () => {
+    transform();
+    updateMatchCounter();
+  });
+}
+
+function mainInputValue() {
+  return mainEditor ? mainEditor.getValue() : nodes.input.value;
+}
+
+function setMainInput(value, focus = false) {
+  if (mainEditor) {
+    mainEditor.setValue(value);
+    if (focus) mainEditor.focus();
+    return;
+  }
+
+  nodes.input.value = value;
+  transform();
+}
+
 function selected(name) {
   return document.querySelector(`input[name="${name}"]:checked`).value;
 }
@@ -128,6 +147,8 @@ function setRadio(name, value) {
 
 function applyPreset(name) {
   const preset = presets[name];
+  if (!preset) return;
+
   setRadio("splitBy", preset.splitBy);
   setRadio("quote", preset.quote);
   setRadio("joinWith", preset.joinWith);
@@ -186,6 +207,10 @@ function uniqueValues(values) {
   });
 }
 
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function patternList(text, caseSensitive) {
   const patterns = text
     .split(/\r?\n/)
@@ -208,30 +233,16 @@ function removeTextPatterns(value, patterns, caseSensitive) {
   }, value);
 }
 
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
 function cleanValues() {
-  let values = splitInput(nodes.input.value, selected("splitBy"));
+  let values = splitInput(mainInputValue(), selected("splitBy"));
 
-  if (nodes.trimItems.checked) {
-    values = values.map((value) => value.trim());
-  }
-
-  if (nodes.removeEmpty.checked) {
-    values = values.filter(Boolean);
-  }
+  if (nodes.trimItems.checked) values = values.map((value) => value.trim());
+  if (nodes.removeEmpty.checked) values = values.filter(Boolean);
 
   values = values.map((value) => applyCase(value, selected("caseMode")));
 
-  if (nodes.trimItems.checked) {
-    values = values.map((value) => value.trim());
-  }
-
-  if (nodes.removeEmpty.checked) {
-    values = values.filter(Boolean);
-  }
+  if (nodes.trimItems.checked) values = values.map((value) => value.trim());
+  if (nodes.removeEmpty.checked) values = values.filter(Boolean);
 
   return values;
 }
@@ -240,37 +251,82 @@ function transform() {
   const quoteMode = selected("quote");
   let values = cleanValues();
 
-  if (nodes.dedupe.checked) {
-    values = uniqueValues(values);
-  }
+  if (nodes.dedupe.checked) values = uniqueValues(values);
 
   const body = values.map((value) => wrapValue(value, quoteMode)).join(joiner(selected("joinWith")));
   nodes.output.value = `${nodes.prefix.value}${body}${nodes.suffix.value}`;
   nodes.counter.textContent = `${values.length} ${values.length === 1 ? "valor" : "valores"}`;
 }
 
+function searchQuery() {
+  const typed = nodes.findText.value;
+  if (typed) return typed;
+  if (!mainEditor) return "";
+
+  const selection = mainEditor.getSelection();
+  if (!selection || selection.includes("\n")) return "";
+  nodes.findText.value = selection;
+  return selection;
+}
+
+function findMatchRanges(query) {
+  if (!mainEditor || !query) return [];
+
+  const cursor = mainEditor.getSearchCursor(query, CodeMirror.Pos(0, 0), {
+    caseFold: !nodes.findCaseSensitive.checked,
+    multiline: true,
+  });
+  const ranges = [];
+
+  while (cursor.findNext()) {
+    ranges.push({ anchor: cursor.from(), head: cursor.to() });
+  }
+
+  return ranges;
+}
+
+function updateMatchCounter() {
+  const query = nodes.findText.value;
+  const total = query ? findMatchRanges(query).length : 0;
+  nodes.matchCounter.textContent = `${total} ${total === 1 ? "coincidencia" : "coincidencias"}`;
+}
+
+function selectAllMatches() {
+  const query = searchQuery();
+  const ranges = findMatchRanges(query);
+
+  if (!ranges.length) {
+    updateMatchCounter();
+    nodes.findText.focus();
+    return;
+  }
+
+  mainEditor.setSelections(ranges, 0);
+  mainEditor.scrollIntoView(ranges[0]);
+  mainEditor.focus();
+  nodes.matchCounter.textContent = `${ranges.length} ${ranges.length === 1 ? "coincidencia" : "coincidencias"}`;
+}
+
+function clearExtraCursors() {
+  const cursor = mainEditor.getCursor("head");
+  mainEditor.setCursor(cursor);
+  mainEditor.focus();
+}
+
 async function copyOutput() {
-  await navigator.clipboard.writeText(nodes.output.value);
-  nodes.copyBtn.textContent = "Copiado";
-  nodes.copyBtn.classList.add("copied");
-  window.setTimeout(() => {
-    nodes.copyBtn.textContent = "Copiar";
-    nodes.copyBtn.classList.remove("copied");
-  }, 1000);
+  await copyTextFrom(nodes.output, nodes.copyBtn, "Copiar IN");
 }
 
 async function pasteInput() {
-  nodes.input.value = await navigator.clipboard.readText();
-  transform();
+  setMainInput(await navigator.clipboard.readText(), true);
 }
 
-async function copyTextFrom(node, button) {
+async function copyTextFrom(node, button, originalText = button.textContent) {
   await navigator.clipboard.writeText(node.value);
-  const original = button.textContent;
   button.textContent = "Copiado";
   button.classList.add("copied");
   window.setTimeout(() => {
-    button.textContent = original;
+    button.textContent = originalText;
     button.classList.remove("copied");
   }, 1000);
 }
@@ -315,15 +371,9 @@ function transformDelete() {
 function rankingValues() {
   let values = splitInput(nodes.rankingInput.value, nodes.rankingSplitBy.value);
 
-  if (nodes.rankingTrim.checked) {
-    values = values.map((value) => value.trim());
-  }
-
+  if (nodes.rankingTrim.checked) values = values.map((value) => value.trim());
   values = values.filter(Boolean);
-
-  if (nodes.rankingIgnoreCase.checked) {
-    values = values.map((value) => value.toLowerCase());
-  }
+  if (nodes.rankingIgnoreCase.checked) values = values.map((value) => value.toLowerCase());
 
   return values;
 }
@@ -367,24 +417,15 @@ function transformRanking() {
 }
 
 function runQuickAction(action) {
-  if (action === "clear") {
-    nodes.input.value = "";
-    transform();
-    nodes.input.focus();
-  }
-
-  if (action === "swap") {
-    nodes.input.value = nodes.output.value;
-    transform();
-  }
-
+  if (action === "clear") setMainInput("", true);
+  if (action === "swap") setMainInput(nodes.output.value, true);
   if (action === "sample") {
-    nodes.input.value = "Santiago\nValparaiso\nConcepcion\nSantiago\n  La Serena  ";
+    setMainInput("Santiago\nValparaiso\nConcepcion\nSantiago\n  La Serena  ", true);
     applyPreset("sql-single");
   }
 }
 
-document.querySelectorAll("input, textarea").forEach((element) => {
+document.querySelectorAll(".advanced-options input").forEach((element) => {
   element.addEventListener("input", transform);
   element.addEventListener("change", transform);
 });
@@ -400,6 +441,16 @@ document.querySelectorAll("[data-action]").forEach((button) => {
 nodes.copyBtn.addEventListener("click", copyOutput);
 nodes.themeToggle.addEventListener("click", toggleTheme);
 nodes.pasteBtn.addEventListener("click", pasteInput);
+nodes.findText.addEventListener("input", updateMatchCounter);
+nodes.findText.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter") return;
+  event.preventDefault();
+  selectAllMatches();
+});
+nodes.findCaseSensitive.addEventListener("change", updateMatchCounter);
+nodes.selectAllMatchesBtn.addEventListener("click", selectAllMatches);
+nodes.clearCursorsBtn.addEventListener("click", clearExtraCursors);
+
 nodes.deleteInput.addEventListener("input", transformDelete);
 nodes.deletePatterns.addEventListener("input", transformDelete);
 nodes.deleteMode.addEventListener("change", transformDelete);
@@ -417,12 +468,14 @@ nodes.deleteTextSampleBtn.addEventListener("click", () => {
   transformDelete();
 });
 nodes.copyDeleteBtn.addEventListener("click", () => copyTextFrom(nodes.deleteOutput, nodes.copyDeleteBtn));
+
 nodes.backslashInput.addEventListener("input", transformBackslashes);
 nodes.backslashSampleBtn.addEventListener("click", () => {
   nodes.backslashInput.value = '{\\"id\\":123,\\"estado\\":\\"OK\\"}\n{\\"id\\":124,\\"estado\\":\\"ERROR\\"}';
   transformBackslashes();
 });
 nodes.copyBackslashBtn.addEventListener("click", () => copyTextFrom(nodes.backslashOutput, nodes.copyBackslashBtn));
+
 nodes.rankingInput.addEventListener("input", transformRanking);
 nodes.rankingSplitBy.addEventListener("change", transformRanking);
 nodes.rankingTop.addEventListener("input", transformRanking);
@@ -436,8 +489,9 @@ nodes.rankingSampleBtn.addEventListener("click", () => {
 nodes.rankingDedupeBtn.addEventListener("click", dedupeRankingInput);
 nodes.copyRankingBtn.addEventListener("click", () => copyTextFrom(nodes.rankingOutput, nodes.copyRankingBtn));
 
-nodes.input.value = "abc\nxyz\n  prueba  ";
 initTheme();
+initMainEditor();
+setMainInput("abc\nxyz\n  prueba  ");
 applyPreset("sql-single");
 transformDelete();
 transformBackslashes();

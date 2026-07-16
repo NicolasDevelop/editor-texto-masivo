@@ -4,199 +4,226 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Editor de texto masivo</title>
-    <link rel="stylesheet" href="styles.css?v=theme-1">
+    <link rel="stylesheet" href="vendor/codemirror/codemirror.min.css">
+    <link rel="stylesheet" href="styles.css?v=editor-2">
   </head>
   <body>
     <main class="app-shell">
       <header class="app-topbar">
         <div>
           <h1>Editor de texto masivo</h1>
-          <p>Transforma listas, limpia logs y cuenta repetidos.</p>
         </div>
         <button id="themeToggle" class="theme-toggle" type="button" aria-pressed="false">Modo oscuro</button>
       </header>
 
-      <section class="toolbar" aria-label="Presets">
-        <button class="preset active" type="button" data-preset="sql-single">SQL IN: 'a','b'</button>
-        <button class="preset" type="button" data-preset="sql-double">SQL IN: "a","b"</button>
-        <button class="preset" type="button" data-preset="plain-comma">a,b,c</button>
-        <button class="preset" type="button" data-preset="one-line">Una linea</button>
-        <button class="preset" type="button" data-preset="clean-lines">Limpiar filas</button>
-      </section>
-
-      <section class="workspace">
-        <div class="panel">
-          <div class="panel-head">
-            <label for="inputText">Entrada</label>
-            <button id="pasteBtn" class="ghost" type="button">Pegar</button>
+      <section class="primary-tool">
+        <div class="primary-head">
+          <div>
+            <span class="eyebrow">Herramienta principal</span>
+            <h2>Lista SQL IN</h2>
           </div>
-          <textarea id="inputText" spellcheck="false" placeholder="Pega aqui una columna, una lista o un texto largo..."></textarea>
+          <div class="preset-actions" aria-label="Formato SQL IN">
+            <button class="preset active" type="button" data-preset="sql-single">Textos 'a','b'</button>
+            <button class="preset" type="button" data-preset="sql-double">Dobles "a","b"</button>
+            <button class="preset" type="button" data-preset="sql-number">Numeros 1,2</button>
+          </div>
         </div>
 
-        <aside class="options" aria-label="Opciones">
-          <div class="option-group">
-            <span class="group-title">Separar entrada por</span>
-            <label><input type="radio" name="splitBy" value="lines" checked> Filas</label>
-            <label><input type="radio" name="splitBy" value="commas"> Comas</label>
-            <label><input type="radio" name="splitBy" value="spaces"> Espacios</label>
-          </div>
-
-          <div class="option-group">
-            <span class="group-title">Envolver cada valor</span>
-            <label><input type="radio" name="quote" value="single" checked> Comilla simple</label>
-            <label><input type="radio" name="quote" value="double"> Comilla doble</label>
-            <label><input type="radio" name="quote" value="none"> Sin comillas</label>
-          </div>
-
-          <div class="option-group">
-            <span class="group-title">Unir salida con</span>
-            <label><input type="radio" name="joinWith" value="comma" checked> Coma</label>
-            <label><input type="radio" name="joinWith" value="comma-space"> Coma + espacio</label>
-            <label><input type="radio" name="joinWith" value="line"> Salto de linea</label>
-            <label><input type="radio" name="joinWith" value="space"> Espacio</label>
-          </div>
-
-          <div class="option-group">
-            <span class="group-title">Limpieza</span>
-            <label><input id="trimItems" type="checkbox" checked> Quitar espacios al inicio/final</label>
-            <label><input id="removeEmpty" type="checkbox" checked> Quitar vacios</label>
-            <label><input id="dedupe" type="checkbox"> Quitar duplicados</label>
-            <label><input id="escapeQuotes" type="checkbox" checked> Escapar comillas SQL</label>
-          </div>
-
-          <div class="option-group">
-            <span class="group-title">Capitalizacion</span>
-            <label><input type="radio" name="caseMode" value="keep" checked> Mantener</label>
-            <label><input type="radio" name="caseMode" value="upper"> MAYUSCULAS</label>
-            <label><input type="radio" name="caseMode" value="lower"> minusculas</label>
-          </div>
-
-          <label class="inline-field">
-            <span>Prefijo</span>
-            <input id="prefix" type="text" placeholder="IN (">
-          </label>
-
-          <label class="inline-field">
-            <span>Sufijo</span>
-            <input id="suffix" type="text" placeholder=")">
-          </label>
-        </aside>
-
-        <div class="panel">
-          <div class="panel-head">
-            <label for="outputText">Resultado</label>
-            <div class="head-actions">
-              <span id="counter" class="counter">0 valores</span>
-              <button id="copyBtn" class="primary" type="button">Copiar</button>
+        <div class="main-workspace">
+          <section class="editor-panel">
+            <div class="panel-head">
+              <strong>Entrada</strong>
+              <div class="head-actions">
+                <button id="pasteBtn" class="ghost" type="button">Pegar</button>
+                <button type="button" data-action="clear">Limpiar</button>
+              </div>
             </div>
-          </div>
-          <textarea id="outputText" spellcheck="false" readonly></textarea>
+            <div class="find-bar">
+              <input id="findText" type="search" autocomplete="off" placeholder="Buscar coincidencias">
+              <label class="icon-check" title="Distinguir mayusculas y minusculas">
+                <input id="findCaseSensitive" type="checkbox">
+                Aa
+              </label>
+              <button id="selectAllMatchesBtn" type="button" title="Selecciona todas las coincidencias para editarlas a la vez">Seleccionar todas</button>
+              <button id="clearCursorsBtn" class="ghost" type="button" title="Vuelve a un solo cursor">Un cursor</button>
+              <span id="matchCounter" class="counter">0 coincidencias</span>
+            </div>
+            <textarea id="inputText" spellcheck="false" placeholder="Pega una columna o escribe texto..."></textarea>
+          </section>
+
+          <section class="result-panel">
+            <div class="panel-head">
+              <strong>Resultado</strong>
+              <div class="head-actions">
+                <span id="counter" class="counter">0 valores</span>
+                <button id="copyBtn" class="primary" type="button">Copiar IN</button>
+              </div>
+            </div>
+            <textarea id="outputText" spellcheck="false" readonly></textarea>
+            <div class="result-actions">
+              <button type="button" data-action="swap">Usar resultado como entrada</button>
+              <button type="button" data-action="sample">Cargar ejemplo</button>
+            </div>
+          </section>
         </div>
+
+        <details class="advanced-options">
+          <summary>Opciones avanzadas</summary>
+          <div class="options-grid">
+            <fieldset>
+              <legend>Separar entrada por</legend>
+              <label><input type="radio" name="splitBy" value="lines" checked> Filas</label>
+              <label><input type="radio" name="splitBy" value="commas"> Comas</label>
+              <label><input type="radio" name="splitBy" value="spaces"> Espacios</label>
+            </fieldset>
+
+            <fieldset>
+              <legend>Envolver cada valor</legend>
+              <label><input type="radio" name="quote" value="single" checked> Comilla simple</label>
+              <label><input type="radio" name="quote" value="double"> Comilla doble</label>
+              <label><input type="radio" name="quote" value="none"> Sin comillas</label>
+            </fieldset>
+
+            <fieldset>
+              <legend>Unir salida con</legend>
+              <label><input type="radio" name="joinWith" value="comma" checked> Coma</label>
+              <label><input type="radio" name="joinWith" value="comma-space"> Coma + espacio</label>
+              <label><input type="radio" name="joinWith" value="line"> Salto de linea</label>
+              <label><input type="radio" name="joinWith" value="space"> Espacio</label>
+            </fieldset>
+
+            <fieldset>
+              <legend>Limpieza</legend>
+              <label><input id="trimItems" type="checkbox" checked> Quitar espacios exteriores</label>
+              <label><input id="removeEmpty" type="checkbox" checked> Quitar vacios</label>
+              <label><input id="dedupe" type="checkbox"> Quitar duplicados</label>
+              <label><input id="escapeQuotes" type="checkbox" checked> Escapar comillas SQL</label>
+            </fieldset>
+
+            <fieldset>
+              <legend>Capitalizacion</legend>
+              <label><input type="radio" name="caseMode" value="keep" checked> Mantener</label>
+              <label><input type="radio" name="caseMode" value="upper"> MAYUSCULAS</label>
+              <label><input type="radio" name="caseMode" value="lower"> minusculas</label>
+            </fieldset>
+
+            <div class="affix-fields">
+              <label>
+                <span>Prefijo</span>
+                <input id="prefix" type="text" value="IN (">
+              </label>
+              <label>
+                <span>Sufijo</span>
+                <input id="suffix" type="text" value=")">
+              </label>
+            </div>
+          </div>
+        </details>
       </section>
 
-      <section class="quick-tools" aria-label="Herramientas rapidas">
-        <button type="button" data-action="swap">Intercambiar entrada/salida</button>
-        <button type="button" data-action="clear">Limpiar todo</button>
-        <button type="button" data-action="sample">Ejemplo SQL</button>
-      </section>
+      <details class="secondary-tools">
+        <summary>
+          <span>Mas herramientas</span>
+        </summary>
 
-      <section class="module-grid" aria-label="Modulos independientes">
-        <article class="tool-module delete-module">
-          <div class="module-head">
-            <div>
-              <h2>Borrado masivo</h2>
-              <p>Borra filas que contengan textos o quita solo el fragmento encontrado.</p>
+        <section class="module-grid" aria-label="Modulos independientes">
+          <article class="tool-module delete-module">
+            <div class="module-head">
+              <div>
+                <h2>Borrado masivo</h2>
+              </div>
+              <div class="module-head-actions">
+                <button id="deleteLinesSampleBtn" class="ghost" type="button">Ejemplo filas</button>
+                <button id="deleteTextSampleBtn" class="ghost" type="button">Ejemplo texto</button>
+              </div>
             </div>
-            <div class="module-head-actions">
-              <button id="deleteLinesSampleBtn" class="ghost" type="button">Ejemplo filas</button>
-              <button id="deleteTextSampleBtn" class="ghost" type="button">Ejemplo texto</button>
+            <div class="module-controls delete-controls">
+              <label>
+                <span>Modo</span>
+                <select id="deleteMode">
+                  <option value="line">Borrar valor/fila si contiene</option>
+                  <option value="text">Quitar solo el texto encontrado</option>
+                </select>
+              </label>
+              <label class="check-control"><input id="deleteCaseSensitive" type="checkbox"> Distinguir mayusculas</label>
             </div>
-          </div>
-          <div class="module-controls delete-controls">
-            <label>
-              <span>Modo</span>
-              <select id="deleteMode">
-                <option value="line">Borrar valor/fila si contiene</option>
-                <option value="text">Quitar solo el texto encontrado</option>
-              </select>
-            </label>
-            <label class="check-control"><input id="deleteCaseSensitive" type="checkbox"> Distinguir mayusculas</label>
-          </div>
-          <div class="module-body delete-body">
-            <label for="deleteInput">Entrada</label>
-            <label for="deletePatterns">Buscar texto</label>
-            <label for="deleteOutput">Resultado</label>
-            <textarea id="deleteInput" class="module-textarea" spellcheck="false" placeholder="cliente_activo&#10;cliente_test&#10;backup_cliente"></textarea>
-            <textarea id="deletePatterns" class="module-textarea" spellcheck="false" placeholder="test&#10;backup"></textarea>
-            <textarea id="deleteOutput" class="module-textarea" spellcheck="false" readonly></textarea>
-          </div>
-          <div class="module-actions">
-            <span id="deleteCounter" class="counter">0 cambios</span>
-            <button id="copyDeleteBtn" class="primary" type="button">Copiar resultado</button>
-          </div>
-        </article>
+            <div class="module-body delete-body">
+              <label for="deleteInput">Entrada</label>
+              <label for="deletePatterns">Buscar texto</label>
+              <label for="deleteOutput">Resultado</label>
+              <textarea id="deleteInput" class="module-textarea" spellcheck="false" placeholder="cliente_activo&#10;cliente_test&#10;backup_cliente"></textarea>
+              <textarea id="deletePatterns" class="module-textarea" spellcheck="false" placeholder="test&#10;backup"></textarea>
+              <textarea id="deleteOutput" class="module-textarea" spellcheck="false" readonly></textarea>
+            </div>
+            <div class="module-actions">
+              <span id="deleteCounter" class="counter">0 cambios</span>
+              <button id="copyDeleteBtn" class="primary" type="button">Copiar resultado</button>
+            </div>
+          </article>
 
-        <article class="tool-module">
-          <div class="module-head">
-            <div>
-              <h2>Quitar backslash</h2>
-              <p>Limpia logs o JSON escapado para copiarlo como texto normal.</p>
+          <article class="tool-module">
+            <div class="module-head">
+              <div>
+                <h2>Quitar backslash</h2>
+              </div>
+              <button id="backslashSampleBtn" class="ghost" type="button">Ejemplo</button>
             </div>
-            <button id="backslashSampleBtn" class="ghost" type="button">Ejemplo</button>
-          </div>
-          <div class="module-body">
-            <label for="backslashInput">Entrada</label>
-            <textarea id="backslashInput" class="module-textarea" spellcheck="false" placeholder="{\&quot;id\&quot;:123,\&quot;estado\&quot;:\&quot;OK\&quot;}"></textarea>
-            <label for="backslashOutput">Resultado</label>
-            <textarea id="backslashOutput" class="module-textarea" spellcheck="false" readonly></textarea>
-          </div>
-          <div class="module-actions">
-            <span id="backslashCounter" class="counter">0 backslash removidos</span>
-            <button id="copyBackslashBtn" class="primary" type="button">Copiar resultado</button>
-          </div>
-        </article>
+            <div class="module-body">
+              <label for="backslashInput">Entrada</label>
+              <textarea id="backslashInput" class="module-textarea" spellcheck="false" placeholder="{\&quot;id\&quot;:123}"></textarea>
+              <label for="backslashOutput">Resultado</label>
+              <textarea id="backslashOutput" class="module-textarea" spellcheck="false" readonly></textarea>
+            </div>
+            <div class="module-actions">
+              <span id="backslashCounter" class="counter">0 backslash removidos</span>
+              <button id="copyBackslashBtn" class="primary" type="button">Copiar resultado</button>
+            </div>
+          </article>
 
-        <article class="tool-module">
-          <div class="module-head">
-            <div>
-              <h2>Ranking de repetidos</h2>
-              <p>Cuenta textos iguales y muestra los mas repetidos.</p>
+          <article class="tool-module">
+            <div class="module-head">
+              <div>
+                <h2>Ranking de repetidos</h2>
+              </div>
+              <div class="module-head-actions">
+                <button id="rankingSampleBtn" class="ghost" type="button">Ejemplo</button>
+                <button id="rankingDedupeBtn" class="ghost" type="button">Eliminar duplicados</button>
+              </div>
             </div>
-            <div class="module-head-actions">
-              <button id="rankingSampleBtn" class="ghost" type="button">Ejemplo</button>
-              <button id="rankingDedupeBtn" class="ghost" type="button">Eliminar duplicados</button>
+            <div class="module-controls">
+              <label>
+                <span>Separar por</span>
+                <select id="rankingSplitBy">
+                  <option value="lines">Filas</option>
+                  <option value="commas">Comas</option>
+                  <option value="spaces">Espacios</option>
+                </select>
+              </label>
+              <label>
+                <span>Top</span>
+                <input id="rankingTop" type="number" min="1" max="100000" step="1" value="10">
+              </label>
+              <label class="check-control"><input id="rankingTrim" type="checkbox" checked> Quitar espacios</label>
+              <label class="check-control"><input id="rankingIgnoreCase" type="checkbox"> Ignorar mayusculas</label>
             </div>
-          </div>
-          <div class="module-controls">
-            <label>
-              <span>Separar por</span>
-              <select id="rankingSplitBy">
-                <option value="lines">Filas</option>
-                <option value="commas">Comas</option>
-                <option value="spaces">Espacios</option>
-              </select>
-            </label>
-            <label>
-              <span>Top</span>
-              <input id="rankingTop" type="number" min="1" max="100000" step="1" value="10">
-            </label>
-            <label class="check-control"><input id="rankingTrim" type="checkbox" checked> Quitar espacios</label>
-            <label class="check-control"><input id="rankingIgnoreCase" type="checkbox"> Ignorar mayusculas</label>
-          </div>
-          <div class="module-body">
-            <label for="rankingInput">Entrada</label>
-            <textarea id="rankingInput" class="module-textarea" spellcheck="false" placeholder="ERROR_TIMEOUT&#10;OK&#10;ERROR_TIMEOUT"></textarea>
-            <label for="rankingOutput">Ranking</label>
-            <textarea id="rankingOutput" class="module-textarea" spellcheck="false" readonly></textarea>
-          </div>
-          <div class="module-actions">
-            <span id="rankingCounter" class="counter">0 textos unicos</span>
-            <button id="copyRankingBtn" class="primary" type="button">Copiar ranking</button>
-          </div>
-        </article>
-      </section>
+            <div class="module-body">
+              <label for="rankingInput">Entrada</label>
+              <textarea id="rankingInput" class="module-textarea" spellcheck="false" placeholder="ERROR_TIMEOUT&#10;OK&#10;ERROR_TIMEOUT"></textarea>
+              <label for="rankingOutput">Ranking</label>
+              <textarea id="rankingOutput" class="module-textarea" spellcheck="false" readonly></textarea>
+            </div>
+            <div class="module-actions">
+              <span id="rankingCounter" class="counter">0 textos unicos</span>
+              <button id="copyRankingBtn" class="primary" type="button">Copiar ranking</button>
+            </div>
+          </article>
+        </section>
+      </details>
     </main>
 
-    <script src="app.js?v=theme-1"></script>
+    <script src="vendor/codemirror/codemirror.min.js"></script>
+    <script src="vendor/codemirror/searchcursor.min.js"></script>
+    <script src="vendor/codemirror/sublime.min.js"></script>
+    <script src="app.js?v=editor-2"></script>
   </body>
 </html>
